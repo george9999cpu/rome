@@ -2,6 +2,20 @@ using UnityEngine;
 
 public class PlayerShooting : MonoBehaviour
 {
+
+
+    [Header("Shoot Sounds")]
+public AudioClip arrowSfx;
+public AudioClip cannonSfx;
+public AudioClip fireSfx;
+
+[Header("Pickup Sounds")]
+public AudioClip arrowPickupSfx;
+public AudioClip cannonPickupSfx;
+public AudioClip firePickupSfx;
+
+
+
     public Transform firePoint;
 
     public GameObject arrowPrefab;
@@ -28,9 +42,9 @@ public class PlayerShooting : MonoBehaviour
     public float fireReload = 9f;
 
     // timers
-     public  float arrowTimer;
-     public  float cannonTimer;
-     public  float fireTimer;
+    public float arrowTimer;
+    public float cannonTimer;
+    public float fireTimer;
 
     // ===== AMMO PER TYPE =====
     [Header("Arrow Ammo")]
@@ -45,8 +59,23 @@ public class PlayerShooting : MonoBehaviour
     public int fireAmmo = 3;
     public int maxFireAmmo = 10;
 
+   
+    public AudioSource src;
+
+    void Start()
+    {
+        src = GetComponent<AudioSource>();
+    }
+
     void Update()
     {
+
+
+        if (Input.GetKeyDown(KeyCode.Y))
+    {
+        Debug.Log("TEST: Adding arrow ammo from keyboard");
+        AddArrowAmmo(5);
+    }
         // tick timers down
         if (arrowTimer > 0f) arrowTimer -= Time.deltaTime;
         if (cannonTimer > 0f) cannonTimer -= Time.deltaTime;
@@ -60,6 +89,10 @@ public class PlayerShooting : MonoBehaviour
                 ShootProjectile(arrowPrefab, arrowSpeed, arrowDamage);
                 arrowTimer = arrowReload;
                 arrowAmmo--;
+
+                // play sound
+                if (src != null && arrowSfx != null)
+                    src.PlayOneShot(arrowSfx);
             }
             else
             {
@@ -75,6 +108,9 @@ public class PlayerShooting : MonoBehaviour
                 ShootProjectile(cannonballPrefab, cannonSpeed, cannonDamage);
                 cannonTimer = cannonReload;
                 cannonAmmo--;
+
+                if (src != null && cannonSfx != null)
+                    src.PlayOneShot(cannonSfx);
             }
             else
             {
@@ -90,6 +126,9 @@ public class PlayerShooting : MonoBehaviour
                 ShootProjectile(fireshotPrefab, fireSpeed, fireDamage);
                 fireTimer = fireReload;
                 fireAmmo--;
+
+                if (src != null && fireSfx != null)
+                    src.PlayOneShot(fireSfx);
             }
             else
             {
@@ -124,41 +163,80 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
-    // ===== CALLED BY PICKUPS =====
-    public void AddArrowAmmo(int amount)
-    {
-        arrowAmmo += amount;
-        if (arrowAmmo > maxArrowAmmo) arrowAmmo = maxArrowAmmo;
-        if (arrowAmmo < 0) arrowAmmo = 0;
-    }
+  public void AddArrowAmmo(int amount)
+{
+    if (amount <= 0) return;
 
-    public void AddCannonAmmo(int amount)
-    {
-        cannonAmmo += amount;
-        if (cannonAmmo > maxCannonAmmo) cannonAmmo = maxCannonAmmo;
-        if (cannonAmmo < 0) cannonAmmo = 0;
-    }
+    int old = arrowAmmo;
 
-    public void AddFireAmmo(int amount)
+    arrowAmmo = Mathf.Clamp(arrowAmmo + amount, 0, maxArrowAmmo);
+
+    if (arrowAmmo > old)
     {
-        fireAmmo += amount;
-        if (fireAmmo > maxFireAmmo) fireAmmo = maxFireAmmo;
-        if (fireAmmo < 0) fireAmmo = 0;
+        Debug.Log($"Arrow ammo pickup: +{amount}, now {arrowAmmo}");
+
+        if (src != null && arrowPickupSfx != null)
+            src.PlayOneShot(arrowPickupSfx);
     }
+}
+
+public void AddCannonAmmo(int amount)
+{
+    if (amount <= 0) return;
+
+    int old = cannonAmmo;
+
+    cannonAmmo = Mathf.Clamp(cannonAmmo + amount, 0, maxCannonAmmo);
+
+    if (cannonAmmo > old)
+    {
+        Debug.Log($"Cannon ammo pickup: +{amount}, now {cannonAmmo}");
+
+        if (src != null && cannonPickupSfx != null)
+            src.PlayOneShot(cannonPickupSfx);
+    }
+}
+
+public void AddFireAmmo(int amount)
+{
+    if (amount <= 0) return;
+
+    int old = fireAmmo;
+
+    fireAmmo = Mathf.Clamp(fireAmmo + amount, 0, maxFireAmmo);
+
+    if (fireAmmo > old)
+    {
+        Debug.Log($"Fire ammo pickup: +{amount}, now {fireAmmo}");
+
+        if (src != null && firePickupSfx != null)
+            src.PlayOneShot(firePickupSfx);
+    }
+}
+
+public void ResetAmmo()
+{
+    arrowAmmo = 20;
+    cannonAmmo = 10;
+    fireAmmo = 3;
+
+    // If you have ammo UI events, trigger them here:
+    // OnAmmoChanged?.Invoke(arrowAmmo, cannonAmmo, fireAmmo);
+}
 
 
     public bool ArrowReady()
-{
-    return arrowTimer <= 0f && arrowAmmo > 0;
-}
+    {
+        return arrowTimer <= 0f && arrowAmmo > 0;
+    }
 
-public bool CannonReady()
-{
-    return cannonTimer <= 0f && cannonAmmo > 0;
-}
+    public bool CannonReady()
+    {
+        return cannonTimer <= 0f && cannonAmmo > 0;
+    }
 
-public bool FireReady()
-{
-    return fireTimer <= 0f && fireAmmo > 0;
-}
+    public bool FireReady()
+    {
+        return fireTimer <= 0f && fireAmmo > 0;
+    }
 }

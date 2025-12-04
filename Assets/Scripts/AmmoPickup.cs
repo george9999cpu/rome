@@ -4,8 +4,7 @@ public class AmmoPickup : MonoBehaviour
 {
     public enum AmmoType { Arrow, Cannon, Fire }
 
-
-public GameObject ammoPopupPrefab; 
+    public GameObject ammoPopupPrefab; 
     public AmmoType ammoType = AmmoType.Arrow;
     public int amount = 5;
 
@@ -40,38 +39,38 @@ public GameObject ammoPopupPrefab;
         if (ps == null)
             return;
 
+        // ✅ use the functions that clamp + play SFX
         switch (ammoType)
         {
             case AmmoType.Arrow:
-                ps.arrowAmmo = Mathf.Min(ps.arrowAmmo + amount, ps.maxArrowAmmo);
+                ps.AddArrowAmmo(amount);
                 break;
 
             case AmmoType.Cannon:
-                ps.cannonAmmo = Mathf.Min(ps.cannonAmmo + amount, ps.maxCannonAmmo);
+                ps.AddCannonAmmo(amount);
                 break;
 
             case AmmoType.Fire:
-                ps.fireAmmo = Mathf.Min(ps.fireAmmo + amount, ps.maxFireAmmo);
+                ps.AddFireAmmo(amount);
                 break;
         }
 
-
+        // popup UI
         if (ammoPopupPrefab != null)
-{
-    // find canvas
-    Canvas canvas = FindObjectOfType<Canvas>();
+        {
+            Canvas canvas = FindObjectOfType<Canvas>();
+            if (canvas != null)
+            {
+                GameObject popup = Instantiate(ammoPopupPrefab, canvas.transform);
 
-    // spawn popup as child of Canvas
-    GameObject popup = Instantiate(ammoPopupPrefab, canvas.transform);
+                string label = "+" + amount + " " + ammoType.ToString();
+                popup.GetComponent<AmmoPopup>()
+                     .SetText(label, new Color(1f, 0.85f, 0f)); 
 
-    // set popup text
-    string label = "+" + amount + " " + ammoType.ToString();
-    popup.GetComponent<AmmoPopup>().SetText(label, new Color(1f, 0.85f, 0f)); 
-    
-    // position popup above the ship
-    Vector3 screenPos = Camera.main.WorldToScreenPoint(other.transform.position);
-    popup.transform.position = screenPos + new Vector3(0, 50, 0);
-}
+                Vector3 screenPos = Camera.main.WorldToScreenPoint(other.transform.position);
+                popup.transform.position = screenPos + new Vector3(0, 50, 0);
+            }
+        }
 
         Destroy(gameObject);
     }

@@ -7,6 +7,15 @@ public class PlayerHealth : MonoBehaviour
     public int maxHp = 100;
     public int hp;
 
+
+[Header("UI Panels")]
+public GameObject alwaysShowing;
+
+    [Header("Heal SFX")]
+public AudioSource healSource;   // audio source on the player (or elsewhere)
+public AudioClip healClip;       // the sound to play when healing
+
+
     [Range(0f, 1f)] public float armorPercent = 0.7f;
     public GameObject deathPanel;
     public string restartSceneName = "SampleScene";
@@ -19,6 +28,20 @@ public class PlayerHealth : MonoBehaviour
     {
         hp = maxHp;
     }
+    public Vector3 startPos;
+
+void Start()
+{
+    startPos = transform.position;   // remember spawn
+}
+
+public void ResetHealthAndPosition()
+{
+    hp = maxHp;
+    transform.position = startPos;
+    OnHealthChanged?.Invoke(hp, maxHp);   // update health bar
+}
+
 
     private void OnEnable()
     {
@@ -43,19 +66,25 @@ public class PlayerHealth : MonoBehaviour
 }
 
     void Die()
-    {
-        // Fixed lines that were causing errors
-        var move = GetComponent<PlayerController>();
-        if (move != null) move.enabled = false;
+{
+    // disable player movement
+    var move = GetComponent<PlayerController>();
+    if (move != null) move.enabled = false;
 
-        var shoot = GetComponent<PlayerShooting>();
-        if (shoot != null) shoot.enabled = false;
+    var shoot = GetComponent<PlayerShooting>();
+    if (shoot != null) shoot.enabled = false;
 
-        if (deathPanel != null)
-            deathPanel.SetActive(true);
+    // hide always showing stats panel
+    if (alwaysShowing != null)
+        alwaysShowing.SetActive(false);
 
-        Time.timeScale = 0f;
-    }
+    // show death panel
+    if (deathPanel != null)
+        deathPanel.SetActive(true);
+
+    Time.timeScale = 0f;
+}
+
 
     // FIXED: No more ternary type mismatch error
     public void RestartGame()
@@ -74,10 +103,22 @@ public void AddHealth(int amount)
 {
     if (hp <= 0) return; // already dead, don’t heal
 
+    int oldHp = hp;
+
     hp = Mathf.Clamp(hp + amount, 0, maxHp);
+
+    // play heal sound ONLY if hp actually increased
+    if (hp > oldHp && healSource != null)
+    {
+        if (healClip != null)
+            healSource.PlayOneShot(healClip);
+        else
+            healSource.Play();  // if the clip is already assigned on the AudioSource
+    }
 
     OnHealthChanged?.Invoke(hp, maxHp); // update health bar
 }
+
     public void QuitToMenu()
     {
         Time.timeScale = 1f;

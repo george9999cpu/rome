@@ -5,20 +5,28 @@ public class LevelIntroTrigger : MonoBehaviour
     [TextArea]
     public string levelText = "Level text here";
 
-    private bool triggered = false;
+    bool triggered = false;
 
-    private void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
         if (triggered) return;
 
-        if (other.CompareTag("Ship"))   // your ship is tagged "Ship"
+        Debug.Log("Something entered Level1Trigger: " + other.name);
+
+        if (other.CompareTag("Ship"))
         {
+            Debug.Log("Ship entered Level1Trigger");
             triggered = true;
 
             LevelIntro intro = FindObjectOfType<LevelIntro>();
             if (intro != null)
             {
+                Debug.Log("Found LevelIntro, showing text");
                 intro.Show(levelText);
+            }
+            else
+            {
+                Debug.LogError("No LevelIntro found in scene!");
             }
         }
     }

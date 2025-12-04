@@ -7,7 +7,7 @@ public class HIdeInGameplay : MonoBehaviour
     {
         if (SceneManager.GetActiveScene().name != "MainMenu")
         {
-            gameObject.SetActive(false);
+            gameObject.SetActive(true);
         }
     }
 }
